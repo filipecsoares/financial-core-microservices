@@ -4,6 +4,7 @@ import com.fcs.accounts.constants.AccountsConstants;
 import com.fcs.accounts.dto.CustomerDto;
 import com.fcs.accounts.dto.ErrorResponseDto;
 import com.fcs.accounts.dto.ResponseDto;
+import com.fcs.accounts.service.IAccountsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @Validated
 public class AccountController {
+
+    private IAccountsService iAccountsService;
 
     @Operation(
             summary = "Create Account REST API",
