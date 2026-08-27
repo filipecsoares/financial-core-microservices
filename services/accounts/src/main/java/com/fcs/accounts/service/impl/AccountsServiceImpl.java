@@ -1,10 +1,13 @@
 package com.fcs.accounts.service.impl;
 
 import com.fcs.accounts.constants.AccountsConstants;
+import com.fcs.accounts.dto.AccountsDto;
 import com.fcs.accounts.dto.CustomerDto;
 import com.fcs.accounts.entity.Account;
 import com.fcs.accounts.entity.Customer;
 import com.fcs.accounts.exception.CustomerAlreadyExistsException;
+import com.fcs.accounts.exception.ResourceNotFoundException;
+import com.fcs.accounts.mapper.AccountsMapper;
 import com.fcs.accounts.mapper.CustomerMapper;
 import com.fcs.accounts.repository.AccountRepository;
 import com.fcs.accounts.repository.CustomerRepository;
@@ -49,9 +52,21 @@ public class AccountsServiceImpl  implements IAccountsService {
         return newAccount;
     }
 
+    /**
+     * @param mobileNumber - Input Mobile Number
+     * @return Accounts Details based on a given mobileNumber
+     */
     @Override
-    public CustomerDto fetchAccount(String mobileNumber) {
-        return null;
+    public CustomerDto fetchAccount(final String mobileNumber) {
+        final Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
+        final Account account = accountRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
+                () -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString())
+        );
+        final CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
+        customerDto.setAccountsDto(AccountsMapper.mapToAccountsDto(account, new AccountsDto()));
+        return customerDto;
     }
 
     @Override
