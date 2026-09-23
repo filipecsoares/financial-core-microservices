@@ -41,6 +41,7 @@ class AccountsServiceImplTest {
 
     private static final Long ACCOUNT_NUMBER = 1234567890L;
     private static final Long CUSTOMER_ID = 1L;
+    private static final String MOBILE_NUMBER = "1234567890";
 
     @BeforeEach
     void setUp() {
@@ -155,6 +156,35 @@ class AccountsServiceImplTest {
         verify(accountRepository).save(account);
         verify(customerRepository).findById(CUSTOMER_ID);
         verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should successfully delete account and customer when customer exists")
+    void deleteAccount_WhenCustomerExists_ShouldReturnTrue() {
+        when(customerRepository.findByMobileNumber(MOBILE_NUMBER)).thenReturn(Optional.of(customer));
+
+        boolean isDeleted = accountsService.deleteAccount(MOBILE_NUMBER);
+
+        assertTrue(isDeleted);
+        verify(customerRepository).findByMobileNumber(MOBILE_NUMBER);
+        verify(accountRepository).deleteByCustomerId(CUSTOMER_ID);
+        verify(customerRepository).deleteById(CUSTOMER_ID);
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when customer to delete is not found")
+    void deleteAccount_WhenCustomerNotFound_ShouldThrowResourceNotFoundException() {
+        when(customerRepository.findByMobileNumber(MOBILE_NUMBER)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> accountsService.deleteAccount(MOBILE_NUMBER)
+        );
+
+        assertTrue(exception.getMessage().contains("Customer not found with the given input data mobileNumber"));
+        verify(customerRepository).findByMobileNumber(MOBILE_NUMBER);
+        verifyNoInteractions(accountRepository);
+        verify(customerRepository, never()).deleteById(any());
     }
 }
 
